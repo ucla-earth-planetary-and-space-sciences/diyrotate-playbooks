@@ -1,0 +1,86 @@
+---
+- name: Update apt caches
+  become: yes
+  apt:
+    upgrade: 'yes'
+    update_cache: yes
+    autoremove: yes
+    autoclean: yes
+    cache_valid_time: 86400 #One day
+
+- name: Apt - install packages
+  become: yes
+  apt:
+    pkg: "{{ item }}"
+    state: latest
+  loop:
+    - build-essential
+    - python3
+    - python3-pip
+    - ffmpeg
+    - libavcodec-dev
+    - libavformat-dev
+    - libavutil-dev
+    - libswscale-dev
+    - libopencv-dev
+    - libopencv-imgproc-dev
+    - libopencv-imgcodecs-dev
+    - libopencv-videoio-dev
+    - uwsgi
+    - uwsgi-plugin-python3
+    - certbot
+    - python3-certbot-nginx
+
+- name: Pip install flask
+  pip:
+    name: flask
+  become: yes
+
+- name: GIT clone netDPr github repo.
+  git:
+    repo: "{{ git_repo }}"
+    dest: /srv/{{ project_name}}
+    depth: "1"
+    force: yes
+  become: yes
+
+- name: Make install some things
+  make:
+    chdir: /srv/{{ project_name }}
+    target: install
+  become: yes
+  notify:
+    - restart_netdpr
+    - restart_nginx
+ 
+- name: ufw allow http
+  become: yes
+  ufw:
+    rule: allow
+    src: any
+    port: http
+    proto: tcp 
+
+- name: ufw allow https
+  become: yes
+  ufw:
+    rule: allow
+    src: any
+    port: https
+    proto: tcp
+
+- name: Certbot it up. 
+  become: yes
+  command: certbot --nginx -d diyrot.epss.ucla.edu --non-interactive --redirect --agree-tos -m webmaster@epss.ucla.edu
+
+- name: service check 
+  service:
+    name: netdpr
+    state: started
+  become: yes
+
+- name: service check 
+  service:
+    name: nginx
+    state: started
+  become: yes
