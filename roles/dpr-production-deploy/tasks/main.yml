@@ -54,6 +54,76 @@
     - restart_netdpr
     - restart_nginx
 
+- name: create /etc/uwsgi
+  become: true
+  file:
+    path: /etc/uwsgi
+    state: directory
+
+- name: create /etc/vassals
+  become: true
+  file:
+    path: /etc/uwsgi/vassals
+    state: directory
+
+- name: link .ini to /etc/uwsgi/vassals
+  become: true
+  file:
+    src: /etc/nginx/uwsgi.ini
+    dest: /etc/uwsgi/vassals/{{ project_name }}.ini
+    state: link
+
+- name: setup logz at /var/log/uwsgi/
+  become: true
+  file:
+    path: /var/log/uwsgi/
+    state: directory
+
+- name: create  logfile for uwsgi
+  become: true
+  file:
+    path: /var/log/uwsgi/{{ project_name }}.log
+    state: touch
+    mode: 0775
+    owner: '{{ webapp_user }}'
+    group: '{{ webapp_user }}'
+
+- name: create /run/uwsgi directory for sockets?
+  become: true
+  file:
+    path: /run/uwsgi
+    state: directory
+    owner: '{{ webapp_user }}'
+    group: '{{ webapp_user }}'
+    mode: 0760
+
+- name: setup uwsgi service to launch at startup.
+  become: true
+  template:
+    src: ../templates/emperor.uwsgi.service
+    owner: root
+    group: root
+    dest: /etc/systemd/system/emperor.uwsgi.service
+
+- name: enable uwsgi service
+  become: true
+  service:
+    name: emperor.uwsgi
+    enabled: yes
+
+- name: reload daemons
+  become: true
+  service:
+    name: emperor.uwsgi
+    daemon_reload: true
+
+- name: start uwsgi service
+  become: true
+  service:
+    name: emperor.uwsgi
+    state: started
+
+
 - name: ufw allow http
   become: yes
   ufw:
