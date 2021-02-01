@@ -2,7 +2,7 @@
 - name: Update apt caches
   become: yes
   apt:
-    upgrade: 'yes'
+    upgrade: "yes"
     update_cache: yes
     autoremove: yes
     autoclean: yes
@@ -44,6 +44,7 @@
     force: yes
   become: yes
 
+
 - name: Make install some things
   make:
     chdir: /srv/{{ project_name }}
@@ -52,14 +53,14 @@
   notify:
     - restart_netdpr
     - restart_nginx
- 
+
 - name: ufw allow http
   become: yes
   ufw:
     rule: allow
     src: any
     port: http
-    proto: tcp 
+    proto: tcp
 
 - name: ufw allow https
   become: yes
@@ -69,17 +70,17 @@
     port: https
     proto: tcp
 
-- name: Certbot it up. 
+- name: Certbot it up.
   become: yes
   command: certbot --nginx -d diyrot.epss.ucla.edu --non-interactive --redirect --agree-tos -m webmaster@epss.ucla.edu
 
-- name: service check 
+- name: service check
   service:
     name: netdpr
     state: started
   become: yes
 
-- name: service check 
+- name: service check
   service:
     name: nginx
     state: started
