@@ -42,18 +42,44 @@
     dest: /srv/{{ project_name}}
     depth: "1"
     force: yes
+  become: "yes"
+
+- name: permissions!
+  file:
+    state: directory
+    path: /srv/diyrot
+    recurse: yes
+    mode: 0770
+    owner: epssadmin
+    group: www-data
   become: yes
 
+ 
 
-- name: Make install some things
-  make:
-    chdir: /srv/{{ project_name }}
-    target: install
+# - name: Make install some things
+#   make:
+#     chdir: /srv/{{ project_name }}
+#     target: install
+#   become: yes
+#   notify:
+#     - restart_netdpr
+#     - restart_nginx
+- name: NGINX - Creating nginx conf
+  become: true
+  template:
+    src: ../templates/nginx-conf.j2
+    dest: /etc/nginx/sites-available/{{ project_name }}.conf
+    owner: root
+    mode: 0644
+
+- name: link to active 
   become: yes
-  notify:
-    - restart_netdpr
-    - restart_nginx
+  file:
+    state: link
+    src: /etc/nginx/sites-available/{{ project_name }}.conf
+    dest: /etc/nginx/sites-enabled/{{ project_name }}.conf
 
+    
 - name: create /etc/uwsgi
   become: true
   file:
@@ -66,12 +92,23 @@
     path: /etc/uwsgi/vassals
     state: directory
 
+
+- name: Replace a localhost entry with our own
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.0\.1'
+    line: 127.0.0.1 localhost
+    owner: root
+    group: root
+    mode: '0644'
+
 - name: link .ini to /etc/uwsgi/vassals
-  become: true
-  file:
-    src: /etc/nginx/uwsgi.ini
+  become: yes
+  template:
+    src: ../templates/diyrot.ini
     dest: /etc/uwsgi/vassals/{{ project_name }}.ini
-    state: link
+    owner: "{{ webapp_user}}"
+    group: "{{ webapp_user}}"
 
 - name: setup logz at /var/log/uwsgi/
   become: true
@@ -143,12 +180,6 @@
 - name: Certbot it up.
   become: yes
   command: certbot --nginx -d diyrot.epss.ucla.edu --non-interactive --redirect --agree-tos -m webmaster@epss.ucla.edu
-
-- name: service check
-  service:
-    name: netdpr
-    state: started
-  become: yes
 
 - name: service check
   service:
