@@ -2,7 +2,7 @@
 - name: restart_netdpr
   become: yes
   service:
-    name: netdpr
+    name: emperor.uwsgi
     state: restarted
 
 - name: restart_nginx

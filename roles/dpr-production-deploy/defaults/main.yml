@@ -1,4 +1,5 @@
 ---
-git_repo: https://github.com/OrangeRoof/diyrot.git
+git_repo: https://github.com/DIYnamics/diyrot.git
 project_name: diyrot 
+site_fqdn: diyrot.epss.ucla.edu
 webapp_user: www-data
