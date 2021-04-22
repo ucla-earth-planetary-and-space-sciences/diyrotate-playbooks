@@ -184,6 +184,15 @@
     group: "{{ webapp_user }}"
     mode: 0760
 
+- name: permissions.
+  become: true
+  file:
+    state: directory
+    mode: 0775
+    owner: '{{ webapp_user }}'
+    group: '{{ webapp_user }}'
+    path:  '/srv/{{project_name}}'
+    
 - name: setup uwsgi service to launch at startup.
   become: true
   template:
