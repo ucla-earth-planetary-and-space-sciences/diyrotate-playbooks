@@ -70,14 +70,32 @@
     group: "www-data"
     mode: "0750"
 
-- name: setup static assets
+- name: create /uploads folder for web
   become: yes
   file:
+    state: directory
     path: "/var/www/{{site_fqdn}}/uploads"
     owner: "www-data"
     group: "www-data"
     mode: "0750"
+
+- name: create /return folder for web
+  become: yes
+  file:
     state: directory
+    path: "/var/www/{{site_fqdn}}/return"
+    owner: "www-data"
+    group: "www-data"
+    mode: "0750"
+
+- name: create /bin folder for web
+  become: yes
+  file:
+    state: directory
+    path: "/var/www/{{site_fqdn}}/bin"
+    owner: "www-data"
+    group: "www-data"
+    mode: "0750"
 
 - name: compile radii_check
   become: yes
@@ -107,15 +125,6 @@
     cmd: "g++ -O3 -I/usr/include/opencv4/ siderot.cpp -o siderot -L`pkg-config --libs opencv4`"
     creates: "siderot"
 
-- name: create /bin folder for web
-  become: yes
-  file:
-    state: directory
-    path: "/var/www/{{site_fqdn}}/bin"
-    owner: "www-data"
-    group: "www-data"
-    mode: "0750"
-
 - name: move compiled assets to /bin
   become: yes
   copy:
@@ -130,6 +139,15 @@
     - derot
     - prederot
     - siderot
+
+- name: create 'count' file for counter. 
+  become: true
+  file:
+    path: /var/www/{{site_fqdn}}/count
+    state: touch
+    owner: "{{ webapp_user }}"
+    group: "{{ webapp_user }}"
+    mode: 0760
 
 - name: Nginx.conf to  /etc/nginx/sites-available
   become: yes
@@ -211,14 +229,7 @@
     group: "{{ webapp_user }}"
     mode: 0760
 
-- name: create 'count' file for counter. 
-  become: true
-  file:
-    path: /var/www/{{site_fqdn}}/count
-    state: touch
-    owner: "{{ webapp_user }}"
-    group: "{{ webapp_user }}"
-    mode: 0760
+
 
 - name: permissions.
   become: true
