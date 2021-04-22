@@ -160,6 +160,15 @@
     group: root
     mode: "0644"
 
+- name: edit flask app to correct path for deployment. 
+  ansible.builtin.lineinfile:
+    path: /srv/{{project_name}}/proc/app.py
+    regexp: "^_root_dir = '/var/www/dpr-dev.epss.ucla.edu/'$"
+    line: ^_root_dir = '/var/www/diyrot.epss.ucla.edu/'$
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: link .ini to /etc/uwsgi/vassals
   become: yes
   template:
@@ -183,11 +192,20 @@
     owner: "{{ webapp_user }}"
     group: "{{ webapp_user }}"
 
-- name: create /run/uwsgi directory for sockets?
+- name: create /run/uwsgi directory for sockets
   become: true
   file:
     path: /run/uwsgi
     state: directory
+    owner: "{{ webapp_user }}"
+    group: "{{ webapp_user }}"
+    mode: 0760
+
+- name: create 'count' file for counter. 
+  become: true
+  file:
+    path: /var/www/{{site_fqdn}}/count
+    state: touch
     owner: "{{ webapp_user }}"
     group: "{{ webapp_user }}"
     mode: 0760
@@ -197,6 +215,7 @@
   file:
     state: directory
     mode: 0775
+    recurse: yes
     owner: '{{ webapp_user }}'
     group: '{{ webapp_user }}'
     path:  '/srv/{{project_name}}'
@@ -252,3 +271,5 @@
     name: nginx
     state: started
   become: yes
+
+
