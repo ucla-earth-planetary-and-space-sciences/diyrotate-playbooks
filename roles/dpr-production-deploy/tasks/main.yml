@@ -91,6 +91,13 @@
     cmd: "g++ -O3 -I/usr/include/opencv4/ prederot.cpp -o prederot -L`pkg-config --libs opencv4`"
     creates: "prederot"
 
+- name: compile siderot
+  become: yes
+  shell:
+    chdir: "/srv/{{project_name}}/dcppr"
+    cmd: "g++ -O3 -I/usr/include/opencv4/ siderot.cpp -o siderot -L`pkg-config --libs opencv4`"
+    creates: "siderot"
+
 - name: create /bin folder for web
   become: yes
   file:
@@ -112,6 +119,7 @@
     - radii_check
     - derot
     - prederot
+    - siderot
 
 - name: Nginx.conf to  /etc/nginx/sites-available
   become: yes
