@@ -70,6 +70,15 @@
     group: "www-data"
     mode: "0750"
 
+- name: setup static assets
+  become: yes
+  file:
+    path: "/var/www/{{site_fqdn}}/uploads"
+    owner: "www-data"
+    group: "www-data"
+    mode: "0750"
+    state: directory
+
 - name: compile radii_check
   become: yes
   shell:
@@ -115,6 +124,7 @@
     dest: "/var/www/{{site_fqdn}}/bin"
     owner: "www-data"
     group: "www-data"
+    mode: 0750
   loop:
     - radii_check
     - derot
@@ -164,7 +174,7 @@
   ansible.builtin.lineinfile:
     path: /srv/{{project_name}}/proc/app.py
     regexp: "^_root_dir = '/var/www/dpr-dev.epss.ucla.edu/'$"
-    line: ^_root_dir = '/var/www/diyrot.epss.ucla.edu/'$
+    line: "_root_dir = '/var/www/diyrot.epss.ucla.edu'"
     owner: root
     group: root
     mode: "0644"
