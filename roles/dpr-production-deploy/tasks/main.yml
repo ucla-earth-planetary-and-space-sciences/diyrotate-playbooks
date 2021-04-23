@@ -97,6 +97,17 @@
     group: "www-data"
     mode: "0750"
 
+- name: remove old binaries incase there are updates to the code. 
+  become: yes
+  file: 
+    state: absent
+    path: "{{ item }}"
+  loop:
+  - /srv/{{project_name}}/dcppr/radii_check
+  - /srv/{{project_name}}/dcppr/derot
+  - /srv/{{project_name}}/dcppr/prederot
+  - /srv/{{project_name}}/dcppr/siderot
+
 - name: compile radii_check
   become: yes
   shell:
