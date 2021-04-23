@@ -107,6 +107,10 @@
   - /srv/{{project_name}}/dcppr/derot
   - /srv/{{project_name}}/dcppr/prederot
   - /srv/{{project_name}}/dcppr/siderot
+  - /var/www/{{ site_fqdn }}/bin/radii_check
+  - /var/www/{{ site_fqdn }}/bin/derot
+  - /var/www/{{ site_fqdn }}/bin/prederot
+  - /var/www/{{ site_fqdn }}/bin/siderot
 
 - name: compile radii_check
   become: yes
