@@ -1,0 +1,44 @@
+---
+- hosts: diyrot.epss.ucla.edu
+  vars: 
+  - delete_after: 1w
+
+  tasks:  
+  - name: mark videos uploads older than a week. 
+    become: yes
+    find:
+      paths: /var/www/diyrot.epss.ucla.edu/uploads/
+      age: "{{ delete_after }}"
+    register: upload_files_to_delete
+
+  - name: mark video returns older than a week. 
+    become: yes
+    find:
+      paths: /var/www/diyrot.epss.ucla.edu/return/
+      age: "{{ delete_after }}"
+    register: return_files_to_delete
+    
+  # - name: what uploads are you going to delete? 
+  #   debug: 
+  #     msg: "{{ item.path }}"
+  #   loop: "{{ upload_files_to_delete.files}}" 
+
+
+  # - name: what returns are you going to delete? 
+  #   debug: 
+  #     msg: "{{ item.path }}" 
+  #   loop: "{{ return_files_to_delete.files }}"
+
+
+  - name: remove upload files
+    file:
+      path: "{{ item.path }}"
+      state: absent
+    with_items: "{{ upload_files_to_delete.files }}"
+
+  - name: remove return files
+    file:
+      path: "{{ item.path }}"
+      state: absent
+    with_items: "{{ upload_files_to_delete.files }}"
+
