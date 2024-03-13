@@ -1,5 +1,5 @@
 ---
-- hosts: diyrot.epss.ucla.edu
+- hosts: dpr-dev.epss.ucla.edu
 
   roles:
     - dpr-production-deploy
