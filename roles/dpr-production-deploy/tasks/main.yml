@@ -25,6 +25,7 @@
     - libopencv-dev
     - libopencv-imgproc-dev
     - libopencv-imgcodecs-dev
+    - libopencv-video-dev
     - libopencv-videoio-dev
     - uwsgi
     - uwsgi-plugin-python3
@@ -99,62 +100,26 @@
 
 - name: remove old binaries incase there are updates to the code. 
   become: yes
+  shell:
+    chdir: "/srv/{{ project_name }}/dcppr"
+    cmd: "make ROOT_DIR=/var/www/ site={{ site_fqdn }} clean"
+    removes: "derot"
+
+- name: make all binaries
+  become: yes
+  shell:
+    chdir: "/srv/{{ project_name }}/dcppr"
+    cmd: "make ROOT_DIR=/var/www/ site={{ site_fqdn }} install"
+
+- name: change permissions of all binaries
+  become: yes
   file: 
-    state: absent
     path: "{{ item }}"
-  loop:
-  - /srv/{{project_name}}/dcppr/radii_check
-  - /srv/{{project_name}}/dcppr/derot
-  - /srv/{{project_name}}/dcppr/prederot
-  - /srv/{{project_name}}/dcppr/siderot
-  - /var/www/{{ site_fqdn }}/bin/radii_check
-  - /var/www/{{ site_fqdn }}/bin/derot
-  - /var/www/{{ site_fqdn }}/bin/prederot
-  - /var/www/{{ site_fqdn }}/bin/siderot
-
-- name: compile radii_check
-  become: yes
-  shell:
-    chdir: "/srv/{{project_name}}/dcppr"
-    cmd: "g++ -O3 -I/usr/include/opencv4/ radii_check.cpp -o radii_check -L`pkg-config --libs opencv4`"
-    creates: "radii_check"
-
-- name: compile derot
-  become: yes
-  shell:
-    chdir: "/srv/{{project_name}}/dcppr"
-    cmd: "g++ -O3 -I/usr/include/opencv4/ derot.cpp -o derot -L`pkg-config --libs opencv4`"
-    creates: "derot"
-
-- name: compile prederot
-  become: yes
-  shell:
-    chdir: "/srv/{{project_name}}/dcppr"
-    cmd: "g++ -O3 -I/usr/include/opencv4/ prederot.cpp -o prederot -L`pkg-config --libs opencv4`"
-    creates: "prederot"
-
-- name: compile siderot
-  become: yes
-  shell:
-    chdir: "/srv/{{project_name}}/dcppr"
-    cmd: "g++ -O3 -I/usr/include/opencv4/ siderot.cpp -o siderot -L`pkg-config --libs opencv4`"
-    creates: "siderot"
-
-- name: move compiled assets to /bin
-  become: yes
-  copy:
-    remote_src: yes
-    src: "/srv/{{project_name}}/dcppr/{{ item }}"
-    dest: "/var/www/{{site_fqdn}}/bin"
     owner: "www-data"
     group: "www-data"
     mode: 0750
-    force: yes
-  loop:
-    - radii_check
-    - derot
-    - prederot
-    - siderot
+  with_fileglob:
+    - "/var/www/{{ site_fqdn }}/*"
 
 - name: create 'count' file for counter. 
   become: true
@@ -204,22 +169,13 @@
     group: root
     mode: "0644"
 
-- name: edit flask app to correct path for deployment. 
-  ansible.builtin.lineinfile:
-    path: /srv/{{project_name}}/proc/app.py
-    regexp: "^_root_dir = '/var/www/dpr-dev.epss.ucla.edu/'$"
-    line: "_root_dir = '/var/www/diyrot.epss.ucla.edu'"
-    owner: root
-    group: root
-    mode: "0644"
-
 - name: link .ini to /etc/uwsgi/vassals
   become: yes
   template:
     src: diyrot.ini
     dest: /etc/uwsgi/vassals/{{ project_name }}.ini
-    owner: "{{ webapp_user}}"
-    group: "{{ webapp_user}}"
+    owner: "{{ webapp_user }}"
+    group: "{{ webapp_user }}"
 
 - name: setup logz at /var/log/uwsgi/
   become: true
@@ -244,8 +200,6 @@
     owner: "{{ webapp_user }}"
     group: "{{ webapp_user }}"
     mode: 0760
-
-
 
 - name: permissions.
   become: true
@@ -308,5 +262,3 @@
     name: nginx
     state: started
   become: yes
-
-
